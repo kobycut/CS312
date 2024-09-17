@@ -1,5 +1,6 @@
 import argparse
 import random
+import math
 
 
 # This is a convenience function for main(). You don't need to touch it.
@@ -9,17 +10,23 @@ def prime_test(N: int, k: int) -> tuple[str, str]:
 
 # You will need to implement this function and change the return value.
 def mod_exp(x: int, y: int, N: int) -> int:
-    return 0
+    if y == 0:
+        return 1
+    z = mod_exp(x, y // 2, N)
+    if y % 2 == 0:
+        return (z ** 2) % N
+    else:
+        return (x * (z ** 2)) % N
 
 
 # You will need to implement this function and change the return value.
 def fprobability(k: int) -> float:
-    return 0
+    return 1 / (2 ** k)
 
 
 # You will need to implement this function and change the return value.
 def mprobability(k: int) -> float:
-    return 0
+    return 1 / (2 ** k)
 
 
 # You will need to implement this function and change the return value, which should be
@@ -29,7 +36,11 @@ def mprobability(k: int) -> float:
 # random.randint(low, hi) which gives a random integer between low and
 # hi, inclusive.
 def fermat(N: int, k: int) -> str:
-    return "???"
+    for i in range(k):
+        a = random.randint(1, N - 1)
+        if mod_exp(a, N - 1, N) != 1:
+            return "composite"
+    return "prime"
 
 
 # You will need to implement this function and change the return value, which should be
@@ -39,7 +50,24 @@ def fermat(N: int, k: int) -> str:
 # random.randint(low, hi) which gives a random integer between low and
 # hi, inclusive.
 def miller_rabin(N: int, k: int) -> str:
-    return "???"
+    for i in range(k):
+        a = random.randint(1, N - 1)
+        x = mod_exp(a, N - 1, N)
+        s = 0
+        z = N - 1
+        while z % 2 == 0:
+            z //= 2
+            s += 1
+        if x == 1 or x == N - 1:
+            continue
+        for r in range(s - 1):
+            x = mod_exp(x, 2, N)
+            if x == 1:
+                return "composite"
+            if x == N - 1:
+                continue
+        return "composite"
+    return "prime"
 
 
 def main(number: int, k: int):

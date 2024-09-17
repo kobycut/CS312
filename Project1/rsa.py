@@ -27,7 +27,12 @@ def ext_euclid(a: int, b: int) -> tuple[int, int, int]:
 
     Note: a must be greater than b
     """
-    return 0, 0, 0
+    if b == 0:
+        return 1, 0, a
+    (x1, y1, d1) = ext_euclid(b, a % b)
+    x = y1
+    y = x1 - ((a // b) * y1)
+    return x, y, d1
 
 
 # Implement this function
@@ -37,7 +42,10 @@ def generate_large_prime(bits=512) -> int:
     Use random.getrandbits(bits) to generate a random number of the
      specified bit length.
     """
-    return 5  # Guaranteed random prime number obtained through fair dice roll
+    num = 4
+    while miller_rabin(num, 20) != "prime":
+        num = random.getrandbits(bits)
+    return num # Guaranteed random prime number obtained through fair dice roll
 
 
 # Implement this function
@@ -48,4 +56,18 @@ def generate_key_pairs(bits: int) -> tuple[int, int, int]:
     - N must be the product of two random prime numbers p and q
     - e and d must be multiplicative inverses mod (p-1)(q-1)
     """
-    return 0, 0, 0
+    p = generate_large_prime()
+    q = generate_large_prime()
+    N = p * q
+    e = 3
+    relatively_prime = (p - 1) * (q - 1)
+    for i in primes:
+        if relatively_prime % i != 0:
+            e = i
+            break
+    x, y, f = ext_euclid(relatively_prime, e)
+    d = y % relatively_prime
+
+
+
+    return N, e, d
