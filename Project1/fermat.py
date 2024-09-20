@@ -3,6 +3,11 @@ import random
 import math
 
 
+#  Big O:
+#  subtraction, addition: O(n)
+#  multiplication: O(n^2)
+
+
 # This is a convenience function for main(). You don't need to touch it.
 def prime_test(N: int, k: int) -> tuple[str, str]:
     return fermat(N, k), miller_rabin(N, k)
@@ -21,12 +26,12 @@ def mod_exp(x: int, y: int, N: int) -> int:
 
 # You will need to implement this function and change the return value.
 def fprobability(k: int) -> float:
-    return 1 / (2 ** k)
+    return 1 - (1 / (2 ** k))
 
 
 # You will need to implement this function and change the return value.
 def mprobability(k: int) -> float:
-    return 1 / (2 ** k)
+    return 1 - (1 / (4 ** k))
 
 
 # You will need to implement this function and change the return value, which should be

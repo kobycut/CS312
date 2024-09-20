@@ -1,5 +1,6 @@
 import random
 import sys
+import timeit
 
 # This may come in handy...
 from fermat import miller_rabin
@@ -45,7 +46,7 @@ def generate_large_prime(bits=512) -> int:
     num = 4
     while miller_rabin(num, 20) != "prime":
         num = random.getrandbits(bits)
-    return num # Guaranteed random prime number obtained through fair dice roll
+    return num  # Guaranteed random prime number obtained through fair dice roll
 
 
 # Implement this function
@@ -56,6 +57,7 @@ def generate_key_pairs(bits: int) -> tuple[int, int, int]:
     - N must be the product of two random prime numbers p and q
     - e and d must be multiplicative inverses mod (p-1)(q-1)
     """
+
     p = generate_large_prime()
     q = generate_large_prime()
     N = p * q
@@ -68,6 +70,5 @@ def generate_key_pairs(bits: int) -> tuple[int, int, int]:
     x, y, f = ext_euclid(relatively_prime, e)
     d = y % relatively_prime
 
-
-
     return N, e, d
+[]
