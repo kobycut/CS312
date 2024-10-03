@@ -9,18 +9,25 @@ class Node:
         self.next = None
         self.prev = None
 
+    def get_data(self):
+        return self.data
+
 
 class LinkedList:
-    def __init__(self):
-        self.head = None
+    def __init__(self, tail, head):
+        self.head = head
+        self.tail = tail
 
-    def insertAtBeginning(self, new_data):
-        new_node = Node(new_data)
-        new_node.next = self.head
 
-        if self.head is not None:
-            self.head.prev = new_node
-        self.head = new_node
+def count_nodes(head):
+    data = head.get_data()
+    size = 1
+    while True:
+        head = head.next
+        if data == head.get_data():
+            break
+        size += 1
+    return size
 
 
 def x_coord(point):
@@ -31,95 +38,123 @@ def get_slope(x1, x2, y1, y2):
     return (y2 - y1) / (x2 - x1)
 
 
-def find_lower_tangent(l, r):
-    l_hull = LinkedList()
-    r_hull = LinkedList()
-    l = sorted(l, key=x_coord)  # least to highest
-    r = sorted(r, key=x_coord, reverse=True)  # highest to least
-    for i in l:
-        l_hull.insertAtBeginning(i)
-    for j in r:
-        r_hull.insertAtBeginning(j)
-    p = l_hull.head
-    q = r_hull.head
-    temp = (p, q)
-    done = False
-    while not done:
-        done = True
-        while True:
-            temp_slope = get_slope(temp[0][0], temp[1][0], temp[0][1], temp[1][1])
-            l_slope = get_slope(p.prev[0], temp[1][0], p.prev[1], temp[1][1])
-            if temp_slope > l_slope:  # slope decreases
-                r = p.prev
-                temp = (r, q)
-                p = r
-                done = False
-            else:
-                break
-        while True:
-            temp_slope = get_slope(temp[0][0], temp[1][0], temp[0][1], temp[1][1])
-            r_slope = get_slope(q.prev[0], temp[1][0], q.prev[1], temp[1][1])
-            if temp_slope > r_slope:  # slope decreases
-                r = q.prev
-                temp = (p, r)
-                q = r
-                done = False
-            else:
-                break
-    return temp
-
-
 def find_upper_tangent(l, r):
-    l_hull = LinkedList()  # initialize linked list
-    r_hull = LinkedList()
-    l = sorted(l, key=x_coord)  # least to highest
-    r = sorted(r, key=x_coord, reverse=True)  # highest to least
-    for i in l:
-        l_hull.insertAtBeginning(i)  # add into linked list. Last for loop should add in right most point.
-    for j in r:
-        r_hull.insertAtBeginning(j)  # add into linked list. Last for loop should add in left most point.
-    p = l_hull.head  # p is the right most point in left hull
-    q = r_hull.head  # q is the left most point in the right hull
-    temp = (p, q)  # make a temporary line from p to q.
+    p = l.head
+    q = r.tail
+    px = p.get_data()[0]
+    py = p.get_data()[1]
+    qx = q.get_data()[0]
+    qy = q.get_data()[1]
+    pxnext = p.next.get_data()[0]
+    pynext = p.next.get_data()[1]
+    qxnext = q.next.get_data()[0]
+    qynext = q.next.get_data()[1]
+
     done = False
+
     while not done:
         done = True
         while True:
-            temp_slope = get_slope(temp[0][0], temp[1][0], temp[0][1], temp[1][1])  # get slope of temp line
-            l_slope = get_slope(p.next[0], temp[1][0], p.next[1], temp[1][1])  # get slope of neighbor line
+            temp_slope = get_slope(px, qx, py, qy)  # get slope of temp line
+            l_slope = get_slope(pxnext, qx, pynext, qy)  # get slope of neighbor line
             if temp_slope > l_slope:
                 r = p.next
-                temp = (r, q)
+
                 p = r
+                px = p.get_data()[0]
+                py = p.get_data()[1]
+                pxnext = p.next.get_data()[0]
+                pynext = p.next.get_data()[1]
                 done = False
             else:
                 break
         while True:
-            temp_slope = get_slope(temp[0][0], temp[1][0], temp[0][1], temp[1][1])
-            r_slope = get_slope(q.next[0], temp[1][0], q.next[1], temp[1][1])
+            temp_slope = get_slope(px, qx, py, qy)
+            r_slope = get_slope(px, qxnext, py, qynext)
             if temp_slope > r_slope:
                 r = q.next
-                temp = (p, r)
+
                 q = r
+                qx = q.get_data()[0]
+                qy = q.get_data()[1]
+                qxnext = q.next.get_data()[0]
+                qynext = q.next.get_data()[1]
                 done = False
             else:
                 break
-    return temp
+
+    return p, q
+
+
+def find_lower_tangent(l, r):
+    p = l.head
+    q = r.head
+    px = p.get_data()[0]
+    py = p.get_data()[1]
+    qx = q.get_data()[0]
+    qy = q.get_data()[1]
+    pxnext = p.next.get_data()[0]
+    pynext = p.next.get_data()[1]
+    qxnext = q.next.get_data()[0]
+    qynext = q.next.get_data()[1]
+
+    done = False
+
+    while not done:
+        done = True
+        while True:
+            temp_slope = get_slope(px, qx, py, qy)  # get slope of temp line
+            l_slope = get_slope(pxnext, qx, pynext, qy)  # get slope of neighbor line
+            if temp_slope > l_slope:
+                r = p.prev
+
+                p = r
+                px = p.get_data()[0]
+                py = p.get_data()[1]
+                pxnext = p.next.get_data()[0]
+                pynext = p.next.get_data()[1]
+
+                done = False
+            else:
+                break
+        while True:
+            temp_slope = get_slope(px, qx, py, qy)
+            r_slope = get_slope(px, qxnext, py, qynext)
+            if temp_slope > r_slope:
+                r = q.prev
+                q = r
+                qx = q.get_data()[0]
+                qy = q.get_data()[1]
+                qxnext = q.next.get_data()[0]
+                qynext = q.next.get_data()[1]
+                done = False
+            else:
+                break
+    return p, q
 
 
 def merge(l, r):
-    upper_tangent = find_upper_tangent(l, r)
-    lower_tangent = find_lower_tangent(l, r)
-    return upper_tangent, lower_tangent
+    p, q = find_upper_tangent(l, r)
+    top_left, top_right = find_lower_tangent(l, r)
+    p.next = q
+    q.prev = p
+    top_left.next = top_right
+    top_right.prev = top_left
+    hull = LinkedList(l.tail, r.head)
+    return hull
 
 
 def recursive_helper(points):
     if len(points) < 2:
-        return points
+        node = Node(points[0])
+        node.next = node
+        node.prev = node
+        return LinkedList(node, node)
     mid = len(points) // 2
     L = recursive_helper(points[:mid])
     R = recursive_helper(points[mid:])
     H = merge(L, R)
+
     return H
 
 
@@ -127,10 +162,12 @@ def compute_hull(points: list[tuple[float, float]]) -> list[tuple[float, float]]
     """Return the subset of provided points that define the convex hull"""
     sorted_points = sorted(points, key=x_coord)
     H = recursive_helper(sorted_points)
+    lst = []
+    H_size = count_nodes(H.head)
+    for i in range(H_size):
+        head = H.head
+        tup = (head.get_data()[0], head.get_data()[1])
+        lst.append(tup)
+        H.head = H.head.next
 
-    return [H]
-
-
-points = [(1, 324), (2, 363), (3, 211), (4, 54), (5, 93)]
-print(compute_hull(points))
-
+    return lst
