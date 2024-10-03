@@ -19,12 +19,13 @@ class LinkedList:
         self.tail = tail
 
 
-def count_nodes(head):
+def count_nodes(head, tail):
     data = head.get_data()
     size = 1
     while True:
         head = head.next
-        if data == head.get_data():
+        head_data = head.get_data()
+        if data == head_data:
             break
         size += 1
     return size
@@ -41,37 +42,44 @@ def get_slope(x1, x2, y1, y2):
 def find_upper_tangent(l, r):
     p = l.head
     q = r.tail
+
     px = p.get_data()[0]
     py = p.get_data()[1]
     qx = q.get_data()[0]
     qy = q.get_data()[1]
+
     pxnext = p.next.get_data()[0]
     pynext = p.next.get_data()[1]
     qxnext = q.next.get_data()[0]
     qynext = q.next.get_data()[1]
+
+    pxprev = p.prev.get_data()[0]
+    pyprev = p.prev.get_data()[1]
+    qxprev = q.prev.get_data()[0]
+    qyprev = q.prev.get_data()[1]
 
     done = False
 
     while not done:
         done = True
         while True:
-            temp_slope = get_slope(px, qx, py, qy)  # get slope of temp line
-            l_slope = get_slope(pxnext, qx, pynext, qy)  # get slope of neighbor line
-            if temp_slope > l_slope:
-                r = p.next
+            current_slope = get_slope(px, qx, py, qy)  # get slope of temp line
+            new_slope = get_slope(pxprev, qx, pyprev, qy)  # get slope of neighbor line
+            if current_slope > new_slope:
+                r = p.prev
 
                 p = r
                 px = p.get_data()[0]
                 py = p.get_data()[1]
-                pxnext = p.next.get_data()[0]
-                pynext = p.next.get_data()[1]
+                pxprev = p.prev.get_data()[0]
+                pyprev = p.prev.get_data()[1]
                 done = False
             else:
                 break
         while True:
-            temp_slope = get_slope(px, qx, py, qy)
-            r_slope = get_slope(px, qxnext, py, qynext)
-            if temp_slope > r_slope:
+            current_slope = get_slope(px, qx, py, qy)
+            new_slope = get_slope(px, qxnext, py, qynext)
+            if current_slope < new_slope:
                 r = q.next
 
                 q = r
@@ -88,45 +96,53 @@ def find_upper_tangent(l, r):
 
 def find_lower_tangent(l, r):
     p = l.head
-    q = r.head
+    q = r.tail
     px = p.get_data()[0]
     py = p.get_data()[1]
     qx = q.get_data()[0]
     qy = q.get_data()[1]
+
+    pxprev = p.prev.get_data()[0]
+    pyprev = p.prev.get_data()[1]
+    qxprev = q.prev.get_data()[0]
+    qyprev = q.prev.get_data()[1]
+
     pxnext = p.next.get_data()[0]
     pynext = p.next.get_data()[1]
     qxnext = q.next.get_data()[0]
     qynext = q.next.get_data()[1]
+
+
 
     done = False
 
     while not done:
         done = True
         while True:
-            temp_slope = get_slope(px, qx, py, qy)  # get slope of temp line
-            l_slope = get_slope(pxnext, qx, pynext, qy)  # get slope of neighbor line
-            if temp_slope > l_slope:
+            current_slope = get_slope(px, qx, py, qy)  # get slope of temp line
+            new_slope = get_slope(pxprev, qx, pyprev, qy)  # get slope of neighbor line
+            if current_slope < new_slope:
                 r = p.prev
 
                 p = r
                 px = p.get_data()[0]
                 py = p.get_data()[1]
-                pxnext = p.next.get_data()[0]
-                pynext = p.next.get_data()[1]
+                pxprev = p.prev.get_data()[0]
+                pyprev = p.prev.get_data()[1]
 
                 done = False
             else:
                 break
         while True:
-            temp_slope = get_slope(px, qx, py, qy)
-            r_slope = get_slope(px, qxnext, py, qynext)
-            if temp_slope > r_slope:
+            current_slope = get_slope(px, qx, py, qy)
+            new_slope = get_slope(px, qxprev, py, qyprev)
+            if current_slope > new_slope:
                 r = q.prev
                 q = r
                 qx = q.get_data()[0]
                 qy = q.get_data()[1]
-                qxnext = q.next.get_data()[0]
-                qynext = q.next.get_data()[1]
+                qxprev = q.next.get_data()[0]
+                qyprev = q.next.get_data()[1]
                 done = False
             else:
                 break
@@ -134,12 +150,15 @@ def find_lower_tangent(l, r):
 
 
 def merge(l, r):
-    p, q = find_upper_tangent(l, r)
-    top_left, top_right = find_lower_tangent(l, r)
-    p.next = q
-    q.prev = p
-    top_left.next = top_right
-    top_right.prev = top_left
+    upper_left_tangent, upper_right_tangent = find_upper_tangent(l, r)
+    lower_left_tangent, lower_right_tangent = find_lower_tangent(l, r)
+
+    upper_left_tangent.next = upper_right_tangent
+    upper_right_tangent.prev = upper_left_tangent
+
+    lower_left_tangent.prev = lower_right_tangent
+    lower_right_tangent.next = lower_left_tangent
+
     hull = LinkedList(l.tail, r.head)
     return hull
 
@@ -153,6 +172,7 @@ def recursive_helper(points):
     mid = len(points) // 2
     L = recursive_helper(points[:mid])
     R = recursive_helper(points[mid:])
+
     H = merge(L, R)
 
     return H
@@ -163,7 +183,7 @@ def compute_hull(points: list[tuple[float, float]]) -> list[tuple[float, float]]
     sorted_points = sorted(points, key=x_coord)
     H = recursive_helper(sorted_points)
     lst = []
-    H_size = count_nodes(H.head)
+    H_size = count_nodes(H.head, H.tail)
     for i in range(H_size):
         head = H.head
         tup = (head.get_data()[0], head.get_data()[1])
