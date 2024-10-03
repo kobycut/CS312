@@ -48,15 +48,12 @@ def find_upper_tangent(l, r):
     qx = q.get_data()[0]
     qy = q.get_data()[1]
 
-    pxnext = p.next.get_data()[0]
-    pynext = p.next.get_data()[1]
     qxnext = q.next.get_data()[0]
     qynext = q.next.get_data()[1]
 
     pxprev = p.prev.get_data()[0]
     pyprev = p.prev.get_data()[1]
-    qxprev = q.prev.get_data()[0]
-    qyprev = q.prev.get_data()[1]
+
 
     done = False
 
@@ -102,17 +99,11 @@ def find_lower_tangent(l, r):
     qx = q.get_data()[0]
     qy = q.get_data()[1]
 
-    pxprev = p.prev.get_data()[0]
-    pyprev = p.prev.get_data()[1]
     qxprev = q.prev.get_data()[0]
     qyprev = q.prev.get_data()[1]
 
     pxnext = p.next.get_data()[0]
     pynext = p.next.get_data()[1]
-    qxnext = q.next.get_data()[0]
-    qynext = q.next.get_data()[1]
-
-
 
     done = False
 
@@ -120,15 +111,15 @@ def find_lower_tangent(l, r):
         done = True
         while True:
             current_slope = get_slope(px, qx, py, qy)  # get slope of temp line
-            new_slope = get_slope(pxprev, qx, pyprev, qy)  # get slope of neighbor line
+            new_slope = get_slope(pxnext, qx, pynext, qy)  # get slope of neighbor line
             if current_slope < new_slope:
-                r = p.prev
+                r = p.next
 
                 p = r
                 px = p.get_data()[0]
                 py = p.get_data()[1]
-                pxprev = p.prev.get_data()[0]
-                pyprev = p.prev.get_data()[1]
+                pxnext = p.next.get_data()[0]
+                pynext = p.next.get_data()[1]
 
                 done = False
             else:
@@ -141,8 +132,8 @@ def find_lower_tangent(l, r):
                 q = r
                 qx = q.get_data()[0]
                 qy = q.get_data()[1]
-                qxprev = q.next.get_data()[0]
-                qyprev = q.next.get_data()[1]
+                qxprev = q.prev.get_data()[0]
+                qyprev = q.prev.get_data()[1]
                 done = False
             else:
                 break
