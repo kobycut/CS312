@@ -24,7 +24,7 @@ if __name__ == '__main__':
     # To debug or run in your IDE
     # you can uncomment the lines below and modify the arguments as needed
     import sys
-    sys.argv = ['main.py', '-n', '100', '--seed', '312']
+    sys.argv = ['main.py', '-n', '1000', '--seed', '312']
     # '--debug'
 
     parser = argparse.ArgumentParser()

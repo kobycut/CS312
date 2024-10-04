@@ -3,7 +3,7 @@
 import time
 
 import numpy as np
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 
 import generate
 from plotting import draw_line, draw_hull, circle_point
