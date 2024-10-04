@@ -19,7 +19,7 @@ class LinkedList:
         self.tail = tail
 
 
-def count_nodes(head, tail):
+def count_nodes(head):
     data = head.get_data()
     size = 1
     while True:
@@ -53,7 +53,6 @@ def find_upper_tangent(l, r):
 
     pxprev = p.prev.get_data()[0]
     pyprev = p.prev.get_data()[1]
-
 
     done = False
 
@@ -174,7 +173,7 @@ def compute_hull(points: list[tuple[float, float]]) -> list[tuple[float, float]]
     sorted_points = sorted(points, key=x_coord)
     H = recursive_helper(sorted_points)
     lst = []
-    H_size = count_nodes(H.head, H.tail)
+    H_size = count_nodes(H.head)
     for i in range(H_size):
         head = H.head
         tup = (head.get_data()[0], head.get_data()[1])
