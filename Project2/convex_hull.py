@@ -1,5 +1,11 @@
 # Uncomment this line to import some functions that can help
 # you debug your algorithm
+import time
+
+import numpy as np
+from matplotlib import pyplot as plt
+
+import generate
 from plotting import draw_line, draw_hull, circle_point
 
 
@@ -169,6 +175,7 @@ def recursive_helper(points):
 
 
 def compute_hull(points: list[tuple[float, float]]) -> list[tuple[float, float]]:
+    start_time = time.time()
     """Return the subset of provided points that define the convex hull"""
     sorted_points = sorted(points, key=x_coord)
     H = recursive_helper(sorted_points)
@@ -179,5 +186,41 @@ def compute_hull(points: list[tuple[float, float]]) -> list[tuple[float, float]]
         tup = (head.get_data()[0], head.get_data()[1])
         lst.append(tup)
         H.head = H.head.next
-
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f"took {elapsed_time} seconds")
     return lst
+
+# for empirical analysis tests:
+# def run_tests():
+#     n_lst = [10, 100, 1000, 10000, 100000, 500000, 1000000]
+#     mean_times = []
+#     for n in n_lst:
+#         times = []
+#         for i in range(5):
+#
+#             set = generate.generate_random_points('normal', n, None)
+#
+#             start = time.time()
+#             compute_hull(set)
+#             end = time.time()
+#             elapsed = end - start
+#             times.append(elapsed)
+#         mean_times.append(np.mean(times))
+#
+#     plt.plot(n_lst, mean_times, marker='o')
+#     plt.xlabel('Number of Points (n)')
+#     plt.ylabel('Mean Time (seconds)')
+#     plt.title('Empirical Analysis: Convex Hull Computation')
+#     table_data = [[n, f"{mean_time:.6f}"] for n, mean_time in zip(n_lst, mean_times)]
+#
+#     # Create the table
+#     table = plt.table(cellText=table_data, colLabels=["Number of Points (n)", "Mean Time (s)"],
+#               loc="upper right", cellLoc="center", colLoc="center", bbox=[1, 0.2, 1.07, 0.5])
+#     table.auto_set_column_width([0, 1])
+#     # Adjust plot to make room for the table
+#     plt.subplots_adjust(right=0.545)
+#     plt.grid(True)
+#     plt.show()
+#
+# run_tests()
