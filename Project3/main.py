@@ -4,8 +4,8 @@ import random
 from math import inf
 from time import time
 
-from plotting import plot_points, draw_path, circle_point, title, show_plot, plot_weights
-from network_routing import find_shortest_path_with_array, find_shortest_path_with_heap
+# from plotting import plot_points, draw_path, circle_point, title, show_plot, plot_weights
+# from network_routing import find_shortest_path_with_array, find_shortest_path_with_heap
 
 
 def rand1to1():
@@ -121,3 +121,4 @@ if __name__ == '__main__':
     # You can use a loop like the following to generate data for your tables:
     # for n in [100, 200, 400, 800, 1600, 3200, 6400]:
     #     main(312, n, 1, 0.05, 2, 9)
+

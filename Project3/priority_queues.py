@@ -14,9 +14,10 @@ class PriorityQueueArray:
         least = float('inf')
         for i in self.PQ.keys():
             dist = self.PQ[i]
-            if dist < least:
+            if dist <= least:
                 least = dist
                 min_node = i
+
         self.PQ.pop(min_node)
         return min_node
 
@@ -73,7 +74,7 @@ class PriorityQueueHeap:
             child1 = self.heap[(self.index_dict[top] * 2) - 1]
             while self.dist_dict[top] > self.dist_dict[child1]:
                 self.swap(self.index_dict[child1] - 1, self.index_dict[top] - 1)
-                if len(self.heap) < (self.index_dict[top] * 2)-1:
+                if len(self.heap) < (self.index_dict[top] * 2) - 1:
                     break
                 child1 = self.heap[(self.index_dict[top] * 2) - 1]
 
@@ -95,8 +96,6 @@ class PriorityQueueHeap:
                     child2 = self.heap[(self.index_dict[top] * 2)]
                 else:
                     break
-
-        # check to see if there is a second child.
 
         return least
 
