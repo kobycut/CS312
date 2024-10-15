@@ -38,8 +38,15 @@ class PriorityQueueHeap:
     def push(self, item):
         self.heap.append(item)
         self.index_dict[item] = len(self.heap)
-        while self.dist_dict[item] < self.dist_dict[self.heap[(self.index_dict[item] // 2) - 1]]:
-            self.swap(self.index_dict[item] - 1, (self.index_dict[item] // 2) - 1)
+        L = (self.index_dict[item] // 2) - 1
+        if L == -1:
+            L = 0
+        while self.dist_dict[item] < self.dist_dict[self.heap[L]]:
+
+            self.swap(self.index_dict[item] - 1, L)
+            L = (self.index_dict[item] // 2) - 1
+            if L == -1:
+                L = 0
 
     def check_empty(self):
         return len(self.heap)
@@ -56,23 +63,54 @@ class PriorityQueueHeap:
         self.swap(0, len(self.heap) - 1)
         least = self.heap.pop()
         self.index_dict.pop(least)
+
+        if len(self.heap) < 2:
+            return least
+
         top = self.heap[0]
-        child1 = self.heap[(self.index_dict[top] * 2) - 1]
-        # check to see if there is a second child.
-        child2 = self.heap[(self.index_dict[top] * 2)]
-        while self.dist_dict[top] > self.dist_dict[child1] or self.dist_dict[top] > self.dist_dict[child2]:
-            lesser_child = child1
-            if self.dist_dict[child2] < self.dist_dict[child1]:
-                lesser_child = child2
-            self.swap(self.index_dict[lesser_child] - 1, self.index_dict[top] - 1)
+
+        if len(self.heap) == 2:
+            child1 = self.heap[(self.index_dict[top] * 2) - 1]
+            while self.dist_dict[top] > self.dist_dict[child1]:
+                self.swap(self.index_dict[child1] - 1, self.index_dict[top] - 1)
+                if len(self.heap) < (self.index_dict[top] * 2)-1:
+                    break
+                child1 = self.heap[(self.index_dict[top] * 2) - 1]
+
+        if len(self.heap) > 2:
             child1 = self.heap[(self.index_dict[top] * 2) - 1]
             child2 = self.heap[(self.index_dict[top] * 2)]
+            while self.dist_dict[top] > self.dist_dict[child1] or self.dist_dict[top] > self.dist_dict[child2]:
+                lesser_child = child1
+                if self.dist_dict[child2] < self.dist_dict[child1]:
+                    lesser_child = child2
+                # if self.index_dict[lesser_child]-1 < 0:
+                #     break
+                self.swap(self.index_dict[lesser_child] - 1, self.index_dict[top] - 1)
+                if len(self.heap) - 1 >= ((self.index_dict[top] * 2) - 1):
+                    child1 = self.heap[(self.index_dict[top] * 2) - 1]
+                else:
+                    break
+                if len(self.heap) - 1 >= (self.index_dict[top] * 2):
+                    child2 = self.heap[(self.index_dict[top] * 2)]
+                else:
+                    break
+
+        # check to see if there is a second child.
+
         return least
 
     def decrease_key(self, v, dist):
         self.dist_dict[v] = dist
-        while self.dist_dict[v] < self.dist_dict[self.heap[(self.index_dict[v] // 2) - 1]]:
-            self.swap(self.index_dict[v] - 1, (self.index_dict[v] // 2) - 1)
+        L = (self.index_dict[v] // 2) - 1
+        if L == -1:
+            L = 0
+        while self.dist_dict[v] < self.dist_dict[self.heap[L]]:
+
+            self.swap(self.index_dict[v] - 1, L)
+            L = (self.index_dict[v] // 2) - 1
+            if L == -1:
+                L = 0
 
     def make_heap(self, V):
         for i in V:
