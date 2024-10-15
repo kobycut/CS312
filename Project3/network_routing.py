@@ -1,8 +1,7 @@
 from priority_queues import PriorityQueueArray, PriorityQueueHeap
 import heapq
-from main import generate_graph
-import time
-from tabulate import tabulate
+
+
 
 
 def find_shortest_path_with_heap(
@@ -91,34 +90,34 @@ def find_shortest_path_with_array(
     return path_lst, cost_of_path
 
 
-def empirical_analysis():
-    n_lst = [1000, 2000, 3000, 4000, 5000, 6000]
-    density_lst = [1, 1, 1, 1, 1, 1]
-    table_data = []
-    for i in range(6):
-
-
-        n = n_lst[i]
-        density = density_lst[i]
-        _, graph = generate_graph(312, n, density, 0.02)
-
-        array_start_time = time.time()
-        array_path, array_cost = find_shortest_path_with_array(graph, 2, 9)
-        array_end_time = time.time()
-        array_time = array_end_time - array_start_time
-
-
-        heap_start_time = time.time()
-        heap_path, heap_cost = find_shortest_path_with_heap(graph, 2, 9)
-        heap_end_time = time.time()
-        heap_edges = len(heap_path)
-        heap_time = heap_end_time - heap_start_time
-
-        table_data.append([n, density, heap_edges, heap_time, array_time])
-        print(i)
-    headers = ["n", "density", "# edges", "heap time (s)", "linear time (s)"]
-    print(tabulate(table_data, headers=headers, floatfmt=".6f"))
-
-
-
-empirical_analysis()
+# def empirical_analysis():
+#     n_lst = [1000, 2000, 3000, 4000, 5000, 6000]
+#     density_lst = [1, 1, 1, 1, 1, 1]
+#     table_data = []
+#     for i in range(6):
+#
+#
+#         n = n_lst[i]
+#         density = density_lst[i]
+#         _, graph = generate_graph(312, n, density, 0.02)
+#
+#         array_start_time = time.time()
+#         array_path, array_cost = find_shortest_path_with_array(graph, 2, 9)
+#         array_end_time = time.time()
+#         array_time = array_end_time - array_start_time
+#
+#
+#         heap_start_time = time.time()
+#         heap_path, heap_cost = find_shortest_path_with_heap(graph, 2, 9)
+#         heap_end_time = time.time()
+#         heap_edges = len(heap_path)
+#         heap_time = heap_end_time - heap_start_time
+#
+#         table_data.append([n, density, heap_edges, heap_time, array_time])
+#         print(i)
+#     headers = ["n", "density", "# edges", "heap time (s)", "linear time (s)"]
+#     print(tabulate(table_data, headers=headers, floatfmt=".6f"))
+#
+#
+#
+# empirical_analysis()

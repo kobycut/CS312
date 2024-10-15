@@ -2,10 +2,10 @@ import argparse
 import math
 import random
 from math import inf
-from time import time
 
-# from plotting import plot_points, draw_path, circle_point, title, show_plot, plot_weights
-# from network_routing import find_shortest_path_with_array, find_shortest_path_with_heap
+
+from plotting import plot_points, draw_path, circle_point, title, show_plot, plot_weights
+from network_routing import find_shortest_path_with_array, find_shortest_path_with_heap
 
 
 def rand1to1():
