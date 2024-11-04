@@ -20,14 +20,6 @@ primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67
 
 # Implement this function
 def ext_euclid(a: int, b: int) -> tuple[int, int, int]:
-    """
-    The Extended Euclid algorithm
-    Returns x, y , d such that:
-    - d = GCD(a, b)
-    - ax + by = d
-
-    Note: a must be greater than b
-    """
     if b == 0:
         return 1, 0, a
     (x1, y1, d1) = ext_euclid(b, a % b)
