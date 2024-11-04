@@ -39,9 +39,30 @@ def align(
             matrix[i][j] = min(diag, up, left)
 
     optimal_cost = matrix[len(seq1)][len(seq2)]
-    return optimal_cost, None, None
+    # back track somehow
+    align1 = ""
+    align2 = ""
+    x = len(seq1)
+    y = len(seq2)
+    while x > 0 or y > 0:
+        if x > 0 and y > 0 and matrix[x][y] == matrix[x - 1][y - 1] + match_award:
+            align1 = seq1[x] + align1
+            align2 = seq2[y] + align2
+            x -= 1
+            y -= 1
+        elif x > 0 and y > 0 and matrix[x][y] == matrix[x - 1][y - 1] + sub_penalty:
+            pass
 
-    # return alignment cost, seq 1 aligned, seq 2 aligned
+        elif x > 0 and matrix[x][y] == matrix[x - 1][y] + indel_penalty:
+            align1 = seq1[x] + align1
+            align2 = gap + align2
+            x -= 1
+        elif y > 0 and matrix[x][y] == matrix[x][y - 1] + indel_penalty:
+            align1 = gap + align1
+            align2 = seq2[y] + align2
+            y -= 1
+
+    return optimal_cost, None, None
 
 
 align('atcgt', 'agtcga', -3, 5, 1, -1, '-')
