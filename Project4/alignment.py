@@ -20,23 +20,28 @@ def align(
         :param gap: the character to use to represent gaps in the alignment strings
         :return: alignment cost, alignment 1, alignment 2
     """
-    matrix = [[0 for x in range(len(seq1))] for y in range(len(seq2))]
+    matrix = [[0 for x in range(len(seq2) + 1)] for y in range(len(seq1) + 1)]
 
-    for i in range(len(seq1)):
+    for i in range(len(seq1) + 1):
         matrix[i][0] = i * indel_penalty
-    for j in range(len(seq2)):
+    for j in range(len(seq2) + 1):
         matrix[0][j] = j * indel_penalty
 
-    for i in range(1, len(seq1)):
-        for j in range(1, len(seq2)):
-            if seq1[i] == seq2[j]:
-                diag = matrix[i-1][j-1] + match_award
+    for i in range(1, len(seq1) + 1):
+        for j in range(1, len(seq2) + 1):
+            if seq1[i - 1] == seq2[j - 1]:
+                diag = matrix[i - 1][j - 1] + match_award
             else:
-                diag = matrix[i-1][j-1] + sub_penalty
-            up = matrix[i][j-1] + indel_penalty
-            left = matrix[i-1][j] + indel_penalty
+                diag = matrix[i - 1][j - 1] + sub_penalty
+            up = matrix[i][j - 1] + indel_penalty
+            left = matrix[i - 1][j] + indel_penalty
 
             matrix[i][j] = min(diag, up, left)
 
+    optimal_cost = matrix[len(seq1)][len(seq2)]
+    return optimal_cost, None, None
+
     # return alignment cost, seq 1 aligned, seq 2 aligned
 
+
+align('atcgt', 'agtcga', -3, 5, 1, -1, '-')
