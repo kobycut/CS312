@@ -20,49 +20,70 @@ def align(
         :param gap: the character to use to represent gaps in the alignment strings
         :return: alignment cost, alignment 1, alignment 2
     """
+    use_banded = False
+    if banded_width != -1:
+        use_banded = True
+    if use_banded:
+        banded_width = banded_width * 2 + 1
+
     matrix = [[0 for x in range(len(seq2) + 1)] for y in range(len(seq1) + 1)]
 
-    for i in range(len(seq1) + 1):
-        matrix[i][0] = i * indel_penalty
-    for j in range(len(seq2) + 1):
-        matrix[0][j] = j * indel_penalty
+    if use_banded:
+        pass
 
-    for i in range(1, len(seq1) + 1):
-        for j in range(1, len(seq2) + 1):
-            if seq1[i - 1] == seq2[j - 1]:
-                diag = matrix[i - 1][j - 1] + match_award
-            else:
-                diag = matrix[i - 1][j - 1] + sub_penalty
-            up = matrix[i][j - 1] + indel_penalty
-            left = matrix[i - 1][j] + indel_penalty
+    else:
+        for i in range(len(seq1) + 1):
+            matrix[i][0] = i * indel_penalty
+        for j in range(len(seq2) + 1):
+            matrix[0][j] = j * indel_penalty
 
-            matrix[i][j] = min(diag, up, left)
+    if use_banded:
+        pass
+
+
+    else:
+        for i in range(1, len(seq1) + 1):
+            for j in range(1, len(seq2) + 1):
+                if seq1[i - 1] == seq2[j - 1]:
+                    diag = matrix[i - 1][j - 1] + match_award
+                else:
+                    diag = matrix[i - 1][j - 1] + sub_penalty
+                up = matrix[i][j - 1] + indel_penalty
+                left = matrix[i - 1][j] + indel_penalty
+
+                matrix[i][j] = min(diag, up, left)
 
     optimal_cost = matrix[len(seq1)][len(seq2)]
-    # back track somehow
+
+    # back track
     align1 = ""
     align2 = ""
     x = len(seq1)
     y = len(seq2)
     while x > 0 or y > 0:
-        if x > 0 and y > 0 and matrix[x][y] == matrix[x - 1][y - 1] + match_award:
-            align1 = seq1[x] + align1
-            align2 = seq2[y] + align2
+        if x > 0 and y > 0 and seq1[x - 1] == seq2[y - 1] and matrix[x][y] == matrix[x - 1][y - 1] + match_award:
+            align1 = seq1[x - 1] + align1
+            align2 = seq2[y - 1] + align2
             x -= 1
             y -= 1
         elif x > 0 and y > 0 and matrix[x][y] == matrix[x - 1][y - 1] + sub_penalty:
-            pass
+            align1 = seq1[x - 1] + align1
+            align2 = seq2[y - 1] + align2
+            x -= 1
+            y -= 1
 
         elif x > 0 and matrix[x][y] == matrix[x - 1][y] + indel_penalty:
-            align1 = seq1[x] + align1
+            align1 = seq1[x - 1] + align1
             align2 = gap + align2
             x -= 1
         elif y > 0 and matrix[x][y] == matrix[x][y - 1] + indel_penalty:
             align1 = gap + align1
-            align2 = seq2[y] + align2
+            align2 = seq2[y - 1] + align2
             y -= 1
 
-    return optimal_cost, None, None
+    return optimal_cost, align1, align2
 
 
-align('atcgt', 'agtcga', -3, 5, 1, -1, '-')
+# ATCTGG ATGGG
+print(align('atcgt', 'agtcga', -3, 5, 1, -1, '-'))
+# print(align('ATCTGG', 'ATGGG', -3, 5, 1, -1, '-'))
