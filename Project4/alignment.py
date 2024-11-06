@@ -21,7 +21,8 @@ def align(
         :return: alignment cost, alignment 1, alignment 2
     """
     if banded_width != -1:
-        return align_banded(seq1, seq2, match_award, indel_penalty, sub_penalty, banded_width, gap)
+        value = align_banded(seq1, seq2, match_award, indel_penalty, sub_penalty, banded_width, gap)
+        return value
 
     matrix_dict = {}
     for i in range(len(seq1) + 1):
@@ -81,24 +82,40 @@ def align_banded(
         banded_width=-1,
         gap='-'
 ) -> tuple[float, str | None, str | None]:
-    banded_width = 3
     matrix_dict = {}
+
     for i in range(0, banded_width + 1):
         matrix_dict[i, 0] = i * indel_penalty
     for j in range(0, banded_width + 1):
         matrix_dict[0, j] = j * indel_penalty
 
     for i in range(1, len(seq1) + 1):
-        for j in range(i - banded_width, i + banded_width):
-            if j - 1 < 0 or j - 1 > len(seq2):
+        for j in range(i - banded_width, i + banded_width + 1):
+            if j - 1 < 0 or j > len(seq2):
                 continue
+
             if seq1[i - 1] == seq2[j - 1]:
                 diag = matrix_dict[i - 1, j - 1] + match_award
             else:
                 diag = matrix_dict[i - 1, j - 1] + sub_penalty
-            up = matrix_dict[i, j - 1] + indel_penalty
 
-            left = matrix_dict[i - 1, j] + indel_penalty
+            if j - 1 < i - banded_width:
+                left = float('inf')
+            else:
+                left = matrix_dict[i, j - 1] + indel_penalty
+
+            if j < i + banded_width:
+                up = matrix_dict[i - 1, j] + indel_penalty
+            else:
+                up = float('inf')
+
+            if diag == up and up == left:
+                up += 1
+                left += 2
+            elif diag == up:
+                up += 1
+            elif diag == left:
+                left += 1
 
             matrix_dict[i, j] = min(diag, up, left)
 
@@ -135,6 +152,12 @@ def align_banded(
 
 
 # ATCTGG ATGGG
-print(align_banded('atcgt', 'agtcga', -3, 5, 1, -1, '-'))
-
+# print(align_banded('atcgt', 'agtcga', -3, 5, 1, -1, '-'))
+# print(align('atcgt', 'agtcga', -3, 5, 1, -1, '-'))
 # print(align('ATCTGG', 'ATGGG', -3, 5, 1, -1, '-'))
+# print(align_banded('ACAATCC', 'AGCATGC', -3, 5, 1, -1, '-'))
+# print(align('ACAATCC', 'AGCATGC', -3, 5, 1, -1, '-'))
+print(align(
+    'gattgcgagcgatttgcgtgcgtgcatcccgcttcactgatctcttgttagatcttttcataatctaaactttataaaaacatccactccctgtagtctatgcctgtgggcgtagatttttcatagtggtgtctatattcatttctgctgttaacagctttcagccagggacgtgttgtatcctaggcagtggcccacccataggtcacaatgtcgaagatcaacaaatacggtctcgaactacactgggctccagaatttccatggatgtttgaggacgcagaggagaagttggacaaccctagtagttcagaggtggatatagtatgctccaccactgcgcaaaagctggaaacaggcggaatttgtcctgaaaatcatgtgatggtggattgtcgccgacttcttaaacaagaatgttgtgtgcagtctagcctaatacgtgaaattgttatgaatacacgtccatatgatttggaggtgctacttcaagatgctttgcagtcccgcgaagcagttttggttacaccccctctaggtatgtctctggaggcatgctatgtgagaggttgtaatcctaatggatggaccatgggtttgtttcggcgtagaagtgtgtgtaacactggtcgctgcgctgttaacaagcatgtggcctatcagctatatatgattgaccctgcgggtgtctgttttggtgcaggtcaatttgtgggttgggttatacccttagcctttatgcctgtgcaatcccggaaatttattgttccttgggttatgtacttgcgtaagtgtggcgaaaagggtgcctacaacaaagatcataaacgtggcggttttgaacacgtttataattttaaagttgaggatgcttacgacttggttcatgatgagcctaagggtaagttttctaagaaggcttatgctttaattagaggataccgtggtgttaaaccgcttctttatgtagaccagtatggttgtgattatactggtggtcttgcagatggcttagaggcttatgctgataagacattgcaagaaatgaaggcattatttcctatttggagccaggaactcccttttgatgtaactgtggcatggcacgttgtgcgtgatccacgttatgttatgagactgcaaagtgcttctactatacgtagtgttgcatatgttgctaaccctactgaagacttgtgtgatggttctgttgttataaaggaacctgtgcatgtttatgcggatgactctattattttacgtcaacataatttagttgacattatgagttgtttttatatggaggcagatgcagttgtaaatgctttttatggtgttgatttgaaagattgtggttttgttatgcagtttggttatattgactgcgaacaagacttgtgtgattttaaaggttgggttcctggtaatatgatagatggttttgcttgcactacttgtggtcatgtctatgagacaggtgatttgctagcacaatcttcaggtgttctgcctgttaatcctgtattgcatactaagagtgcagcaggttatggtggttttggttgtaaggattcttttaccctgtatggccaaactgtagtttattttggaggttgtgtgtattggagtccagcacgtaatatatggattcctatattaaaatcttctgttaagtcttatgacggtttggtttatactggagttgtaggttgcaaggctattgtaaaggaaacaaatctcatttgcaaagcgttgtaccttgattatgttcaacacaagtgtggcaatttacaccagcgggagttgctaggtgtgtcagatgtgtggcataaacaattgttattaaatagaggtgtgtacaaacctcttttagagaatattgattattttaatatgcggcgcgctaaatttagtttagaaacttttactgtttgtgcagatggttttatgccttttcttttagatgatttggttccgcgcgcatattatttggcagtaagtggtcaagcattttgtgactacgcagataaaatctgccatgctgttgtgtctaagagtaaagagttacttgatgtgtctctggattctttaagtgcagctatacattatttgaattctaaaattgttgatttggctcaacattttagtgattttggaacaagttttgtttctaaaattgttcatttctttaagacttttactactagcactgctcttgcatttgcatgggttttatttcatgttttgcatggtgcttatatagtagtagagagtgatatatattttgttaaaaacattcctcgttatgctagtgctgttgcacaagcatttcggagtgttgctaaagttgtactggactctttaagagttacttttattgatggcctttcttgttttaagattggacgtagaagaatttgtctctcaggcagtaaaatttatgaagttgagcgtggcttgttacattcatctcaattgccattagatgtttatgatttaaccatgcctagtcaagttcagaaagccaagcaaaaacctatttatttaaaaggttctggttctgatttttcattagcagatagtgtggttgaagttgttacaacttcacttacaccatgtggttattctgaaccacctaaagttgcagataaaatttgcattgtggataatgtttatatggccaaggctggtgacaaatattaccctgttgtggttgatggtcatgtaggactcttggatcaagcatggagggttccttgtgctggaaggcgtgttacatttaaggaacagcctacagtaaatgagattgcaagcacacctaagactattaaagttttttatgagcttgacaaagattttaatactattttaaacactgcatgtggagtgtttgaagtagatgataccgtggatatggaggaattttatgctgtggtgattgatgccatagaagagaaactttctccatgtaaggagcttgaaggtgtaggtgctaaagtt',
+    'ataagagtgattggcgtccgtacgtaccctttctactctcaaactcttgttagtttaaatctaatctaaactttataaacggcacttcctgtgtgtccatgcccgtgggcttggtcttgtcatagtgctgacatttgtggttccttggtttttgttctctgccagtgacgtgtccattcggcgccagcagcccacccataggttgcataatggcaaagatgggcaaatacggtctcggcttcaaatgggccccagaatttccatggatgcttccgaacgcatcggagaagttgggtagccctgagaggtcagaggaggatgggttttgcccctctgctgcgcaagaaccaaaaactaaaggaaaaactttgattaatcacgtgagggtggattgtagccggcttccagcattggagtgctgtgttcagtctgccataatccgtgatatttttgttgatgaggatcccttgaatgtggaggcctcaactatgatggcattgcagttcggtagtgctgtcttggtcaagccatccaagcgcttgtctattcaggcatgggctaagttgggtgtgctgcctaaaactccagccatggggttgttcaagcgcttctgcctgtgtaacaccagggagtgcgtttgtgacgcccacgtggcttttcaactttttacggtccagcctgatggtgtatgcctgggcaatggccgttttataggctggtttgtgccagtcacagccataccggcgtatgcgaagcagtggttgcaaccctggtccatccttcttcgtaagggtggtaacaaaggttctgtaacatccggccatttccgccgcgctgttaccatgcctgtgtatgactttaatgtggaggatgcttgtgaggaggttcatcttaacccgaagggtaagtactcccgcaaggcgtatgctcttcttaagggctatcgcggtgttaaatccatcctattcttggaccagtatggttgtgactatactgggcgtctcgccaagggtcttgaagactatggcgattgtactttggaagagatgaaggagttgtttcctgtgtggtgtgactccttggataatgaagttgttgtggcctggcatgttgatcgggatcctcgggctgttatgcgcttgcagactcttgctactgtacgttgcattggttatgtgggccaaccgaccgaggatttggttgatggagatgtggtagtgcgtgagcctgctcatctcctagcagccaatgccatcgtcaaaaggctcccccgcctggtggagactatgctgtatacggactcttccgttacagaattttgttataaaactaagttgtgtgattgtggttttatcacgcagtttggttatgtggattgctgtggtgatgcctgcgattttcgtgggtgggttcctggcaatatgatggatggctttctttgccccggatgtagtaagagctatatgccctgggaattggaggctcaatcatctggtgtgattccaaaaggtggtgttctatttactcagagcactgacacggtgaatcgtgagtcatttaagctctacggtcatgccgttgtgccttttggttctgctgtgtattggagcccctacccaggtatgtggcttccagttatttggtcttctgttaagtcatatgctgatttgacttacacaggcgttgttggttgtaaggcaattgttcaggagacagatgctatttgccggtccctatatatggactacgttcagcacaagtgtggcaatctcgagcagagagctattcttgggttggatgatgtctaccatagacaattgcttgtaaatagaggtgactatagtctcctccttgaaaatgtagatctttttgttaagcggcgcgctgaatttgcttgtaaattcgccacctgtggagatggtcttgtacctctgctactagatggtttggtgccccgcagttattatttgattaagagtggccaagccttcacctcgatgatggttaattttagccatgaggtgactgacatgtgtatggacatggcattattgttcatgcatgatgttaaagtggccactaagtatgttaagaaggttactggcaaactagccgtgcgctttaaggcgttaggtgtagccgttgtcaggaaaattactgaatggtttgatcttgccgtggacactgctgccagtgctgctggatggctttgctaccagctggtaaatggcttatttgcagtggctaatggtggcataaccttcttaagcgatgttcctgagctggtcaagaattttgttgacaagttcaaggtattcttcaaggttttgatcgactctatgtcggtttctgtcctttctggacttactgttgtcaagactgcctctaatagggtttgtcttgctggctgtaaggtttatgaagttgtgcagaagcgtttgtctgcatatgttatgcctgtgggttgcaacgaggccacttgtttagtgggtgagattgaacctgcagttgttgaagatgatgttgttgatgtggttaaagccccattaacatatcaaggctgttgtaagccacctacttcttttgagaagatttgtgttgtggataaattgtatatggccaagtgtggtgatcaattttaccctgtggttgttgataatgacactattggcgtgttagatcagtgttggaggtttccctgcgcaggcaagaaagtcgagtttaacgacaagcctaaagtcaaggagataccctccacgcgaaagattaagttcaactttgcgttggatgcgacttttgatagtgtcctttcgaaggcgtgttctgagtttgaagttgataaagacgttacattggatgagctgcttgatgttgtgcttgatgcagttgagagtacgctcagcccttgtaaggagcatgatgtgattggcacaaaagtttgtgctttacttaataggttggcagaagattatgtctacctctttgatgagggaggcgagg',
+    -3, 5, 1, 3, '-'))
