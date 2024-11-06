@@ -20,40 +20,27 @@ def align(
         :param gap: the character to use to represent gaps in the alignment strings
         :return: alignment cost, alignment 1, alignment 2
     """
-    use_banded = False
     if banded_width != -1:
-        use_banded = True
-    if use_banded:
-        banded_width = banded_width * 2 + 1
+        return align_banded(seq1, seq2, match_award, indel_penalty, sub_penalty, banded_width, gap)
 
-    matrix = [[0 for x in range(len(seq2) + 1)] for y in range(len(seq1) + 1)]
+    matrix_dict = {}
+    for i in range(len(seq1) + 1):
+        matrix_dict[i, 0] = i * indel_penalty
+    for j in range(len(seq2) + 1):
+        matrix_dict[0, j] = j * indel_penalty
 
-    if use_banded:
-        pass
+    for i in range(1, len(seq1) + 1):
+        for j in range(1, len(seq2) + 1):
+            if seq1[i - 1] == seq2[j - 1]:
+                diag = matrix_dict[i - 1, j - 1] + match_award
+            else:
+                diag = matrix_dict[i - 1, j - 1] + sub_penalty
+            up = matrix_dict[i, j - 1] + indel_penalty
+            left = matrix_dict[i - 1, j] + indel_penalty
 
-    else:
-        for i in range(len(seq1) + 1):
-            matrix[i][0] = i * indel_penalty
-        for j in range(len(seq2) + 1):
-            matrix[0][j] = j * indel_penalty
+            matrix_dict[i, j] = min(diag, up, left)
 
-    if use_banded:
-        pass
-
-
-    else:
-        for i in range(1, len(seq1) + 1):
-            for j in range(1, len(seq2) + 1):
-                if seq1[i - 1] == seq2[j - 1]:
-                    diag = matrix[i - 1][j - 1] + match_award
-                else:
-                    diag = matrix[i - 1][j - 1] + sub_penalty
-                up = matrix[i][j - 1] + indel_penalty
-                left = matrix[i - 1][j] + indel_penalty
-
-                matrix[i][j] = min(diag, up, left)
-
-    optimal_cost = matrix[len(seq1)][len(seq2)]
+    optimal_cost = matrix_dict[len(seq1), len(seq2)]
 
     # back track
     align1 = ""
@@ -61,22 +48,85 @@ def align(
     x = len(seq1)
     y = len(seq2)
     while x > 0 or y > 0:
-        if x > 0 and y > 0 and seq1[x - 1] == seq2[y - 1] and matrix[x][y] == matrix[x - 1][y - 1] + match_award:
+        if x > 0 and y > 0 and seq1[x - 1] == seq2[y - 1] and matrix_dict[x, y] == matrix_dict[
+            x - 1, y - 1] + match_award:
             align1 = seq1[x - 1] + align1
             align2 = seq2[y - 1] + align2
             x -= 1
             y -= 1
-        elif x > 0 and y > 0 and matrix[x][y] == matrix[x - 1][y - 1] + sub_penalty:
+        elif x > 0 and y > 0 and matrix_dict[x, y] == matrix_dict[x - 1, y - 1] + sub_penalty:
             align1 = seq1[x - 1] + align1
             align2 = seq2[y - 1] + align2
             x -= 1
             y -= 1
 
-        elif x > 0 and matrix[x][y] == matrix[x - 1][y] + indel_penalty:
+        elif x > 0 and matrix_dict[x, y] == matrix_dict[x - 1, y] + indel_penalty:
             align1 = seq1[x - 1] + align1
             align2 = gap + align2
             x -= 1
-        elif y > 0 and matrix[x][y] == matrix[x][y - 1] + indel_penalty:
+        elif y > 0 and matrix_dict[x, y] == matrix_dict[x, y - 1] + indel_penalty:
+            align1 = gap + align1
+            align2 = seq2[y - 1] + align2
+            y -= 1
+
+    return optimal_cost, align1, align2
+
+
+def align_banded(
+        seq1: str,
+        seq2: str,
+        match_award=-3,
+        indel_penalty=5,
+        sub_penalty=1,
+        banded_width=-1,
+        gap='-'
+) -> tuple[float, str | None, str | None]:
+    banded_width = 3
+    matrix_dict = {}
+    for i in range(0, banded_width + 1):
+        matrix_dict[i, 0] = i * indel_penalty
+    for j in range(0, banded_width + 1):
+        matrix_dict[0, j] = j * indel_penalty
+
+    for i in range(1, len(seq1) + 1):
+        for j in range(i - banded_width, i + banded_width):
+            if j - 1 < 0 or j - 1 > len(seq2):
+                continue
+            if seq1[i - 1] == seq2[j - 1]:
+                diag = matrix_dict[i - 1, j - 1] + match_award
+            else:
+                diag = matrix_dict[i - 1, j - 1] + sub_penalty
+            up = matrix_dict[i, j - 1] + indel_penalty
+
+            left = matrix_dict[i - 1, j] + indel_penalty
+
+            matrix_dict[i, j] = min(diag, up, left)
+
+    optimal_cost = matrix_dict[len(seq1), len(seq2)]
+
+    # back track
+    align1 = ""
+    align2 = ""
+    x = len(seq1)
+    y = len(seq2)
+    while x > 0 or y > 0:
+        if x > 0 and y > 0 and seq1[x - 1] == seq2[y - 1] and matrix_dict[x, y] == matrix_dict[
+            x - 1, y - 1] + match_award:
+            align1 = seq1[x - 1] + align1
+            align2 = seq2[y - 1] + align2
+            x -= 1
+            y -= 1
+        elif x > 0 and y > 0 and matrix_dict[x, y] == matrix_dict[x - 1, y - 1] + sub_penalty:
+            align1 = seq1[x - 1] + align1
+            align2 = seq2[y - 1] + align2
+            x -= 1
+            y -= 1
+
+        elif x > 0 and matrix_dict[x, y] == matrix_dict[x - 1, y] + indel_penalty:
+            align1 = seq1[x - 1] + align1
+            align2 = gap + align2
+            x -= 1
+        elif y > 0 and matrix_dict[x, y] == matrix_dict[x, y - 1] + indel_penalty:
             align1 = gap + align1
             align2 = seq2[y - 1] + align2
             y -= 1
@@ -85,5 +135,6 @@ def align(
 
 
 # ATCTGG ATGGG
-print(align('atcgt', 'agtcga', -3, 5, 1, -1, '-'))
+print(align_banded('atcgt', 'agtcga', -3, 5, 1, -1, '-'))
+
 # print(align('ATCTGG', 'ATGGG', -3, 5, 1, -1, '-'))
