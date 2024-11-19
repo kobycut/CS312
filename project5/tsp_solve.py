@@ -1,7 +1,8 @@
+import copy
 import math
 import random
 
-from tsp_core import T our, SolutionStats, Timer, score_tour, Solver
+from tsp_core import Tour, SolutionStats, Timer, score_tour, Solver
 from tsp_cuttree import CutTree
 
 
@@ -54,7 +55,49 @@ def random_tour(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
 
 
 def greedy_tour(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
-    return []
+    stats = []
+    n_nodes_expanded = 0
+    n_nodes_pruned = 0
+    cut_tree = CutTree(len(edges))
+    bssf = float('inf')
+    loop_counter = 0
+    while True:
+
+
+        # if timer.time_out():
+        #     return stats
+        if loop_counter >= len(edges) :  # once all nodes visited
+            return stats
+        cost = 0
+        curr_node = edges[loop_counter]
+        min_weight = float('inf')
+        visited = []
+        while True:
+            if len(visited) == len(edges):
+                break
+            for i in range(len(curr_node)):  # loop through out-bound edges
+                if curr_node[i] == 0:  # check that isn't path to self
+                    continue
+                if i in visited:  # check that isn't going back to a visited node
+                    continue
+                if min_weight > curr_node[i]:
+                    min_weight = curr_node[i]  # find minimum cost out-bound edge
+                    index = i  # find next node to go to
+
+            if min_weight == float('inf'):  # check if path continues
+                cost = float('inf')
+                break
+            cost += min_weight
+            if cost > bssf:
+                break
+
+            visited.append(index)
+
+            curr_node = edges[index]
+        if bssf > cost:
+            bssf = cost
+        loop_counter += 1
+    return stats
 
 
 def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
