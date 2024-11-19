@@ -63,16 +63,17 @@ def greedy_tour(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
     loop_counter = 0
     while True:
 
-
         # if timer.time_out():
         #     return stats
-        if loop_counter >= len(edges) :  # once all nodes visited
-            return stats
+        if loop_counter >= len(edges):  # once all nodes visited
+            break
         cost = 0
         curr_node = edges[loop_counter]
         min_weight = float('inf')
-        visited = []
+        visited = [loop_counter]
+        path = [loop_counter]
         while True:
+            min_weight = float('inf')
             if len(visited) == len(edges):
                 break
             for i in range(len(curr_node)):  # loop through out-bound edges
@@ -92,11 +93,25 @@ def greedy_tour(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
                 break
 
             visited.append(index)
-
+            path.append(index)
             curr_node = edges[index]
         if bssf > cost:
             bssf = cost
+            path.reverse()
+            bssf_path = path
         loop_counter += 1
+
+    stats.append(SolutionStats(
+        tour=bssf_path,
+        score=bssf,
+        time=timer.time(),
+        max_queue_size=1,
+        n_nodes_expanded=n_nodes_expanded,
+        n_nodes_pruned=n_nodes_pruned,
+        n_leaves_covered=cut_tree.n_leaves_cut(),
+        fraction_leaves_covered=cut_tree.fraction_leaves_covered()
+    ))
+
     return stats
 
 
