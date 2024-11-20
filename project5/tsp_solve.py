@@ -117,6 +117,10 @@ def greedy_tour(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
 
 
 def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
+    n_nodes_expanded = 0
+    n_nodes_pruned = 0
+    cut_tree = CutTree(len(edges))
+    stats = []
     tour = [0]
     s = [[edges[0], tour]]
     bssf = float('inf')
@@ -154,7 +158,17 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
             for i in temp_tracking:
                 s.append(i)
 
-    return []
+    stats.append(SolutionStats(
+        tour=bssf_tour,
+        score=bssf,
+        time=timer.time(),
+        max_queue_size=0,
+        n_nodes_expanded=0,
+        n_nodes_pruned=0,
+        n_leaves_covered=cut_tree.n_leaves_cut(),
+        fraction_leaves_covered=cut_tree.fraction_leaves_covered()
+    ))
+    return stats
 
 
 def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
