@@ -1,6 +1,7 @@
 import copy
 import math
 import random
+import queue
 
 from tsp_core import Tour, SolutionStats, Timer, score_tour, Solver
 from tsp_cuttree import CutTree
@@ -75,7 +76,7 @@ def greedy_tour(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
         while True:
             min_weight = float('inf')
             if len(visited) == len(edges):
-                cost +=curr_node[path[0]]
+                cost += curr_node[path[0]]
                 break
             for i in range(len(curr_node)):  # loop through out-bound edges
                 if curr_node[i] == 0:  # check that isn't path to self
@@ -116,6 +117,43 @@ def greedy_tour(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
 
 
 def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
+    tour = [0]
+    s = [[edges[0], tour]]
+    bssf = float('inf')
+    bssf_tour = []
+
+    while s:
+        if len(tour) == len(edges):
+            if score_tour(tour, edges) < bssf:
+                bssf = score_tour(tour, edges)
+                bssf_tour = tour
+            s.pop()
+
+        p_list = s.pop()
+        p = p_list[0]
+        tour = p_list[1]
+        temp_tracking = []
+        set_tour = []
+        for i in range(len(p)):
+            if p[i] == 0:
+                continue
+            if p[i] == float('inf'):
+                continue
+            if i in tour:
+                continue
+            temp_tour = copy.deepcopy(tour)
+            temp_tour.append(i)
+            temp_tracking.append([edges[i], temp_tour])
+            set_tour.append(i)
+
+        if set_tour != float('inf'):
+            if not set_tour:
+                continue
+            tour.append(set_tour[0])
+            temp_tracking.reverse()
+            for i in temp_tracking:
+                s.append(i)
+
     return []
 
 
