@@ -117,8 +117,6 @@ def greedy_tour(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
 
 
 def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
-    n_nodes_expanded = 0
-    n_nodes_pruned = 0
     cut_tree = CutTree(len(edges))
     stats = []
     tour = [0]
@@ -171,7 +169,63 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
     return stats
 
 
+def partial_state_lower_bound(partial_state):
+    lower_bound = float('inf')
+
+    return lower_bound
+
+
 def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
+    for i in range(len(edges)):
+        for j in range(len(edges)):
+            if edges[i][j] == 0:
+                edges[i][j] = float('inf')
+    cut_tree = CutTree(len(edges))
+    stats = []
+    tour = [0]
+    s = [[edges[0], tour]]
+    lower_bound = float('inf')
+
+    greedy_results = greedy_tour(edges, timer)  # initial bssf is just the greedy results
+    bssf = greedy_results[-1].score
+    bssf_tour = greedy_results[-1].tour
+
+    while s:
+        if len(tour) == len(edges):
+            if score_tour(tour, edges) < bssf:
+                bssf = score_tour(tour, edges)
+                bssf_tour = tour
+            s.pop()
+
+        p_list = s.pop()
+        p = p_list[0]
+        tour = p_list[1]
+        temp_tracking = []
+        set_tour = []
+        #  if p_lower_bound < lower_bound: do rest, if not, prune
+
+        for i in range(len(p)):
+            if p[i] == float('inf'):
+                continue
+            if i in tour:
+                continue
+            temp_tour = copy.deepcopy(tour)
+            temp_tour.append(i)
+
+            #  do partial states and get p_lower_bound for p[i]
+            p_lower_bound = partial_state_lower_bound(temp_tour)
+            #  if p_lower_bound < lower_bound: add to set, if not, continue
+
+            temp_tracking.append([edges[i], temp_tour])  # add in lower bound to this as well
+            set_tour.append(i)
+
+        if set_tour != float('inf'):
+            if not set_tour:
+                continue
+            tour.append(set_tour[0])
+            temp_tracking.reverse()
+            for i in temp_tracking:
+                s.append(i)
     return []
 
 

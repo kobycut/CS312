@@ -75,7 +75,7 @@ if __name__ == '__main__':
 
     main(
         5,
-        # random_tour,
+        random_tour,
         greedy_tour,
         # dfs,
         # branch_and_bound,
