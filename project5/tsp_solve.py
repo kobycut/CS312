@@ -173,11 +173,14 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
 
 
 def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
+    n_nodes_expanded = 0
+    n_nodes_pruned = 0
+    cut_tree = CutTree(len(edges))
+
     for i in range(len(edges)):
         for j in range(len(edges)):
             if edges[i][j] == 0:
                 edges[i][j] = float('inf')
-    cut_tree = CutTree(len(edges))
 
     initial_matrix = np.array(edges)  # make first initial matrix
     initial_matrix = matrix(initial_matrix, None, None, 0)
@@ -209,7 +212,9 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
         p_lower_bound = parent_matrix.lower_bound
         temp_tracking = []
         set_tour = []
-        if p_lower_bound > bssf:  # if p_lower_bound < lower_bound: do rest, if not, prune
+        if p_lower_bound > bssf:# if p_lower_bound < lower_bound: do rest, if not, prune
+            n_nodes_pruned += 1
+            cut_tree.cut(tour)
             continue
 
         for i in range(len(p)):
@@ -231,10 +236,12 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
             p_matrix.col_reduce()
             #  should it be > or >=
             if p_matrix.lower_bound > bssf:
+                n_nodes_pruned += 1
+                cut_tree.cut(tour)
                 continue
 
             #  if p_lower_bound < lower_bound: add to set, if not, continue
-
+            n_nodes_expanded += 1
             temp_tracking.append([edges[i], temp_tour, p_matrix])
             set_tour.append(i)
 
@@ -245,16 +252,18 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
             temp_tracking.reverse()
             for i in temp_tracking:
                 s.append(i)
+
     stats.append(SolutionStats(
         tour=bssf_tour,
         score=bssf,
         time=timer.time(),
         max_queue_size=0,
-        n_nodes_expanded=0,
-        n_nodes_pruned=0,
+        n_nodes_expanded=n_nodes_expanded,
+        n_nodes_pruned=n_nodes_pruned,
         n_leaves_covered=cut_tree.n_leaves_cut(),
         fraction_leaves_covered=cut_tree.fraction_leaves_covered()
     ))
+    print(stats)
     return stats
 
 
