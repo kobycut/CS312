@@ -2,7 +2,8 @@ import copy
 import math
 import random
 import queue
-
+import numpy as np
+from matrix import matrix
 from tsp_core import Tour, SolutionStats, Timer, score_tour, Solver
 from tsp_cuttree import CutTree
 
@@ -169,21 +170,21 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
     return stats
 
 
-def partial_state_lower_bound(partial_state):
-    lower_bound = float('inf')
-
-    return lower_bound
-
-
 def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
     for i in range(len(edges)):
         for j in range(len(edges)):
             if edges[i][j] == 0:
                 edges[i][j] = float('inf')
     cut_tree = CutTree(len(edges))
+
+    initial_matrix = np.array(edges)  # make first initial matrix
+    initial_matrix = matrix(initial_matrix, None, None)
+    initial_matrix.row_reduce()
+    initial_matrix.col_reduce()
+
     stats = []
     tour = [0]
-    s = [[edges[0], tour]]
+    s = [[edges[0], tour, initial_matrix]]
     lower_bound = float('inf')
 
     greedy_results = greedy_tour(edges, timer)  # initial bssf is just the greedy results
@@ -200,9 +201,12 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
         p_list = s.pop()
         p = p_list[0]
         tour = p_list[1]
+        parent_matrix = p_list[2]
+        p_lower_bound = parent_matrix.lower_bound
         temp_tracking = []
         set_tour = []
-        #  if p_lower_bound < lower_bound: do rest, if not, prune
+        if p_lower_bound > lower_bound:
+            continue  # if p_lower_bound < lower_bound: do rest, if not, prune
 
         for i in range(len(p)):
             if p[i] == float('inf'):
@@ -212,8 +216,8 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
             temp_tour = copy.deepcopy(tour)
             temp_tour.append(i)
 
-            #  do partial states and get p_lower_bound for p[i]
-            p_lower_bound = partial_state_lower_bound(temp_tour)
+            #  do partial states and get p_lower_bound for p[i]... figure out row and col
+
             #  if p_lower_bound < lower_bound: add to set, if not, continue
 
             temp_tracking.append([edges[i], temp_tour])  # add in lower bound to this as well
