@@ -126,6 +126,8 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
     bssf_tour = []
 
     while s:
+        if timer.time_out():
+            return stats
         if len(tour) == len(edges):
             if score_tour(tour, edges) < bssf:
                 bssf = score_tour(tour, edges)
@@ -178,25 +180,27 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
     cut_tree = CutTree(len(edges))
 
     initial_matrix = np.array(edges)  # make first initial matrix
-    initial_matrix = matrix(initial_matrix, None, None)
+    initial_matrix = matrix(initial_matrix, None, None, 0)
     initial_matrix.row_reduce()
     initial_matrix.col_reduce()
 
     stats = []
     tour = [0]
     s = [[edges[0], tour, initial_matrix]]
-    lower_bound = float('inf')
 
     greedy_results = greedy_tour(edges, timer)  # initial bssf is just the greedy results
     bssf = greedy_results[-1].score
     bssf_tour = greedy_results[-1].tour
 
     while s:
+        if timer.time_out():
+            return stats
         if len(tour) == len(edges):
             if score_tour(tour, edges) < bssf:
                 bssf = score_tour(tour, edges)
                 bssf_tour = tour
             s.pop()
+            continue
 
         p_list = s.pop()
         p = p_list[0]
@@ -205,8 +209,8 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
         p_lower_bound = parent_matrix.lower_bound
         temp_tracking = []
         set_tour = []
-        if p_lower_bound > lower_bound:
-            continue  # if p_lower_bound < lower_bound: do rest, if not, prune
+        if p_lower_bound > bssf:  # if p_lower_bound < lower_bound: do rest, if not, prune
+            continue
 
         for i in range(len(p)):
             if p[i] == float('inf'):
@@ -215,12 +219,23 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
                 continue
             temp_tour = copy.deepcopy(tour)
             temp_tour.append(i)
-
-            #  do partial states and get p_lower_bound for p[i]... figure out row and col
+            #  figure out row and col... do partial states and get p_lower_bound for p[i]
+            p_matrix = copy.deepcopy(parent_matrix)
+            p_matrix = matrix(p_matrix.matrix, tour[-1], i, p_matrix.lower_bound)
+            p_matrix.lower_bound += parent_matrix.matrix[tour[-1]][i]
+            # do all operations on p_matrix
+            p_matrix.row_reduce()
+            p_matrix.col_reduce()
+            p_matrix.cross_out()
+            p_matrix.row_reduce()
+            p_matrix.col_reduce()
+            #  should it be > or >=
+            if p_matrix.lower_bound > bssf:
+                continue
 
             #  if p_lower_bound < lower_bound: add to set, if not, continue
 
-            temp_tracking.append([edges[i], temp_tour])  # add in lower bound to this as well
+            temp_tracking.append([edges[i], temp_tour, p_matrix])
             set_tour.append(i)
 
         if set_tour != float('inf'):
@@ -230,8 +245,21 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
             temp_tracking.reverse()
             for i in temp_tracking:
                 s.append(i)
-    return []
+    stats.append(SolutionStats(
+        tour=bssf_tour,
+        score=bssf,
+        time=timer.time(),
+        max_queue_size=0,
+        n_nodes_expanded=0,
+        n_nodes_pruned=0,
+        n_leaves_covered=cut_tree.n_leaves_cut(),
+        fraction_leaves_covered=cut_tree.fraction_leaves_covered()
+    ))
+    return stats
 
 
 def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
     return []
+
+# input = [[float('inf'), 7, 3, 12], [3, float('inf'), 6, 14], [5, 8, float('inf'), 6], [9, 3, 5, float('inf')]]
+# branch_and_bound(input, Timer())
