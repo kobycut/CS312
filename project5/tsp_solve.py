@@ -4,7 +4,7 @@ import random
 import queue
 import numpy as np
 from matrix import matrix
-from tsp_core import Tour, SolutionStats, Timer, score_tour, Solver
+from tsp_core import Tour, SolutionStats, Timer, score_tour, Solver, score_partial_tour
 from tsp_cuttree import CutTree
 import heapq
 
@@ -197,13 +197,14 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
     bssf_tour = greedy_results[-1].tour
 
     while s:
-        if timer.time_out():
-            return stats
+        # if timer.time_out():
+        #     return stats
 
         if len(tour) == len(edges):
             if score_tour(tour, edges) < bssf:
                 bssf = score_tour(tour, edges)
                 bssf_tour = tour
+            tour = []
             s.pop()
             continue
 
@@ -214,10 +215,6 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
         p_lower_bound = parent_matrix.lower_bound
         temp_tracking = []
         set_tour = []
-        if p_lower_bound > bssf:  # if p_lower_bound < lower_bound: do rest, if not, prune
-            n_nodes_pruned += 1
-            cut_tree.cut(tour)
-            continue
 
         for i in range(len(p)):
             if p[i] == float('inf'):
@@ -265,7 +262,7 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
         n_leaves_covered=cut_tree.n_leaves_cut(),
         fraction_leaves_covered=cut_tree.fraction_leaves_covered()
     ))
-    print(stats)
+    print(f"THIS IS NORMAL!!!!!!!!!!!!!!!! {stats}")
     return stats
 
 
@@ -287,20 +284,22 @@ def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[Solut
     initial_matrix.col_reduce()
     #  cities left + lower_bound // 2 for smart pruning
     s = []
-    heapq.heappush(s, (50, edges[0], tour, initial_matrix))
+    heapq.heappush(s, (0, edges[0], tour, initial_matrix))
     # s = [[edges[0], tour, initial_matrix]]
     greedy_results = greedy_tour(edges, timer)  # initial bssf is just the greedy results
     bssf = greedy_results[-1].score
     bssf_tour = greedy_results[-1].tour
 
     while s:
-        if timer.time_out():
-            return stats
+        # if timer.time_out():
+        #     return stats
 
+        # score = score_tour([0, 2, 3, 14, 5, 10, 12, 1, 13, 8, 9, 11, 6, 15, 4, 7, 16], edges)
         if len(tour) == len(edges):
-            if score_tour(tour, edges) <= bssf:
+            if score_tour(tour, edges) < bssf:
                 bssf = score_tour(tour, edges)
                 bssf_tour = tour
+            tour = []
             heapq.heappop(s)
             # s.pop()
             continue
@@ -314,11 +313,11 @@ def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[Solut
 
         # p_list = heapq.heappop(s)
         fake, p, tour, parent_matrix = heapq.heappop(s)
-
         # p_list = s.pop()
         # p = p_list[0]
         # tour = p_list[1]
         # parent_matrix = p_list[2]
+
         p_lower_bound = parent_matrix.lower_bound
 
         temp_tracking = []
@@ -346,15 +345,21 @@ def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[Solut
             p_matrix.row_reduce()
             p_matrix.col_reduce()
             #  should it be > or >=
+
             if p_matrix.lower_bound > bssf:
+                # [0, 2, 3, 14, 5, 10, 12, 1, 13, 8, 9, 11, 6, 15, 4, 7, 16]
                 n_nodes_pruned += 1
                 cut_tree.cut(tour)
                 continue
 
             #  if p_lower_bound < lower_bound: add to set, if not, continue
+
+            #  smart technique finds path that has lowest lower_bound and closest to a solution
+
             n_nodes_expanded += 1
-            smart_technique = (p_matrix.lower_bound + (len(edges) - len(tour))) // 2
-            temp_tracking.append([smart_technique, edges[i], temp_tour, p_matrix])  # HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+            smart_technique = p_matrix.lower_bound + (len(edges) - len(tour))
+            # smart_technique = 3
+            temp_tracking.append([smart_technique, edges[i], temp_tour, p_matrix])
             set_tour.append(i)
 
         if set_tour != float('inf'):
@@ -375,8 +380,9 @@ def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[Solut
         n_leaves_covered=cut_tree.n_leaves_cut(),
         fraction_leaves_covered=cut_tree.fraction_leaves_covered()
     ))
-    print(stats)
+    print(f"THIS IS SMARTTTT!!!!!!!!!!!!!!!! {stats}")
     return stats
 
 # input = [[float('inf'), 7, 3, 12], [3, float('inf'), 6, 14], [5, 8, float('inf'), 6], [9, 3, 5, float('inf')]]
-# branch_and_bound(input, Timer())
+# print(branch_and_bound(input, Timer()))
+# print(branch_and_bound_smart(input, Timer()))
