@@ -102,6 +102,16 @@ def greedy_tour(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
         if bssf > cost:
             bssf = cost
             bssf_path = path
+            stats.append(SolutionStats(
+                tour=bssf_path,
+                score=bssf,
+                time=timer.time(),
+                max_queue_size=0,
+                n_nodes_expanded=0,
+                n_nodes_pruned=0,
+                n_leaves_covered=cut_tree.n_leaves_cut(),
+                fraction_leaves_covered=cut_tree.fraction_leaves_covered()
+            ))
         loop_counter += 1
 
     stats.append(SolutionStats(
@@ -132,6 +142,16 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
             if score_tour(tour, edges) < bssf:
                 bssf = score_tour(tour, edges)
                 bssf_tour = tour
+                stats.append(SolutionStats(
+                    tour=bssf_tour,
+                    score=bssf,
+                    time=timer.time(),
+                    max_queue_size=0,
+                    n_nodes_expanded=0,
+                    n_nodes_pruned=0,
+                    n_leaves_covered=cut_tree.n_leaves_cut(),
+                    fraction_leaves_covered=cut_tree.fraction_leaves_covered()
+                ))
             s.pop()
 
         p_list = s.pop()
