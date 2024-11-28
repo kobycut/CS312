@@ -7,8 +7,6 @@ class matrix():
         self.lower_bound = lower_bound
         self.row = row
         self.col = col
-
-    #  make sure to account for cost of going from one state to another
     def row_reduce(self):
         for i in range(len(self.matrix)):
             if 0 not in self.matrix[i]:
@@ -26,12 +24,10 @@ class matrix():
                     val = self.matrix[i][j]
                     val -= min_value
                     self.matrix[i][j] = val
-
     def col_reduce(self):
         self.matrix = self.matrix.transpose()
         self.row_reduce()
         self.matrix = self.matrix.transpose()
-
     def cross_out(self):
         for i in range(len(self.matrix)):
             self.matrix[self.row][i] = float('inf')
